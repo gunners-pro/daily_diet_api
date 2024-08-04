@@ -28,6 +28,34 @@ export async function mealsRoutes(app: FastifyInstance) {
     return { meal }
   })
 
+  app.patch(
+    '/:id',
+    { preHandler: [checkAuthorization] },
+    async (request, reply) => {
+      const userId = request.cookies.userId
+      const idSchema = z.object({
+        id: z.string().uuid(),
+      })
+
+      const { id } = idSchema.parse(request.params)
+      const bodySchema = z.object({
+        name: z.string(),
+        description: z.string(),
+        in_diet: z.boolean(),
+      })
+
+      const { name, description, in_diet } = bodySchema.parse(request.body)
+
+      await knex('meals').where({ id, user_id: userId }).update({
+        name,
+        description,
+        in_diet,
+      })
+
+      return reply.status(200).send()
+    },
+  )
+
   app.delete(
     '/:id',
     { preHandler: [checkAuthorization] },
