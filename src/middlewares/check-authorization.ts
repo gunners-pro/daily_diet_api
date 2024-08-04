@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 
-export function checkAuthorization(
+export async function checkAuthorization(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
