@@ -5,6 +5,16 @@ import { knex } from '../database'
 
 export async function mealsRoutes(app: FastifyInstance) {
   app.post('/', async (request, reply) => {
+    let userId = request.cookies.userId
+    if (!userId) {
+      userId = randomUUID()
+
+      reply.cookie('userId', userId, {
+        path: '/',
+        maxAge: 60 * 60 * 24, // 1 day
+      })
+    }
+
     const createMealBodySchema = z.object({
       name: z.string(),
       description: z.string(),
@@ -20,7 +30,7 @@ export async function mealsRoutes(app: FastifyInstance) {
       name,
       description,
       in_diet,
-      user_id: randomUUID(),
+      user_id: userId,
     })
     return reply.status(201).send()
   })
