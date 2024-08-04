@@ -13,6 +13,21 @@ export async function mealsRoutes(app: FastifyInstance) {
     return { meals }
   })
 
+  app.get('/:id', { preHandler: [checkAuthorization] }, async (request) => {
+    const userId = request.cookies.userId
+    const idParamsSchema = z.object({
+      id: z.string().uuid(),
+    })
+    const { id } = idParamsSchema.parse(request.params)
+
+    const meal = await knex('meals')
+      .select('*')
+      .where({ user_id: userId, id })
+      .first()
+
+    return { meal }
+  })
+
   app.post('/', async (request, reply) => {
     let userId = request.cookies.userId
     if (!userId) {
