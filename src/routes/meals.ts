@@ -102,4 +102,33 @@ export async function mealsRoutes(app: FastifyInstance) {
     })
     return reply.status(201).send()
   })
+
+  app.get('/summary', { preHandler: [checkAuthorization] }, async (request) => {
+    const userId = request.cookies.userId
+
+    const total = await knex('meals').where('user_id', userId).count().first()
+    const dietOn = await knex('meals')
+      .where({ user_id: userId, in_diet: true })
+      .count()
+      .first()
+    const dietOff = await knex('meals')
+      .where({ user_id: userId, in_diet: false })
+      .count()
+      .first()
+
+    let tot = 0
+    let seq = 0
+    await knex('meals')
+      .where('user_id', userId)
+      .then((rows) => {
+        rows.forEach((row) => {
+          if (row.in_diet) {
+            seq++
+            if (tot < seq) tot = seq
+          } else seq = 0
+        })
+      })
+
+    return { total, dietOn, dietOff, sequence: tot }
+  })
 }
